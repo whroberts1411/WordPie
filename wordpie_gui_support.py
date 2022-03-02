@@ -32,6 +32,10 @@
 #               21/02/2022
 #               When solving a puzzle from another source (e.g. web), highlight
 #               the current letter when adding the background colours.
+#               02/03/2022
+#               Add key bindings for <Ctrl> + 'h' or 'd' sequences. These will
+#               action events that aren't relly appropriate for conventional
+#               buttons (print a hint to the console and turn debug on/off).
 #
 #-------------------------------------------------------------------------------
 
@@ -52,28 +56,28 @@ grey = "#C6D8D8"
 white = '#ffffff'
 blue = '#0000e1'        # this is the text colour for the guesses
 btnColour = "#fffaf0"   # this is the default pale yellow colour
-btnDisabled = '#c9c9c9' # The light gray used for the main window background
+btnDisabled = '#c9c9c9' # The light grey used for the main window background
 
 # This is the word we need to find
 secret = ''
-# Storage for possible letters at each word position
+# Storage for possible letters at each word position (as sets)
 letterSets = []
 # Set of correct letters in the wrong position
 wrongPos = set()
-# Print messages to the terminal for matches?
+# Print messages to the terminal for matches and other debug info?
 debug = False
 # Current word and letter in the guesses grid
 curr_word = None
 curr_letter = None
-# Store textbox controls for the grid - 6 sublists for each row
+# Store textbox controls for the grid - 6 sublists, one per row
 wordGrid = []
-# Store the textbox variables for the grid - 6 sublists for each row
+# Store the textbox variables for the grid - 6 sublists, one per row
 varsGrid = []
 # Dictionary to store the keyboard button controls - key is the letter
 keyboard = {}
 
 #-------------------------------------------------------------------------------
-# Event Handlers for the screen controls
+# Event Handlers for the screen controls, etc.
 #-------------------------------------------------------------------------------
 
 def cmdStart_click(*args):
@@ -206,6 +210,25 @@ def cmdNext_click(*args):
         return
     else:
         solvePuzzle()
+
+#-------------------------------------------------------------------------------
+
+def key_pressed(event):
+    """ Capture specific <Ctrl>-key sequences, to perform actions that we
+        don't want to assign to buttons. """
+
+    global debug
+
+    # If <Ctrl>-h is pressed, select a random word from the word list as a hint
+    # for the player. It will be displayed in the console window.
+    if event.keysym == 'h':
+        hint = wordpie.getHint()
+        print(hint)
+
+    # Turn debug mode on or off if <Ctrl>-d is pressed.
+    if event.keysym == 'd':
+        debug = not debug
+        print('Debug is', debug)
 
 #-------------------------------------------------------------------------------
 # Miscellaneous helper functions called from screen controls, etc.
@@ -541,6 +564,11 @@ def do_init():
 
     _w1.ManAuto.set('Man')
     _top1.iconbitmap('wordpie.ico')
+
+    # Bind these <Ctrl> key sequences to the root, so that they will be picked
+    # up at any point in the program.
+    root.bind('<Control-h>', key_pressed)
+    root.bind('<Control-d>', key_pressed)
 
     # Update the word dictionary with the word scores, etc.
     wordpie.setupDataframe()

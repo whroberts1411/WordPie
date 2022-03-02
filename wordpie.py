@@ -1,14 +1,11 @@
 #! /usr/bin/env python
 #  -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-#!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
-#-------------------------------------------------------------------------------
-# Name:         wordle.py
+# Name:         wordpie.py
 #
 # Purpose:      Implements the Wordle word game, offering the option of either
 #               trying to solve it yourself or letting the program attempt it.
-#               It uses a dictionary of 2,498 5-letter words as its source.
+#               It uses a dictionary of 2,500+ 5-letter words as its source.
 #
 # Author:       Bill Roberts
 #
@@ -124,12 +121,11 @@ def getNextWord(letterSets, wrongPos, debug=False):
     """
 
     global candidates
-    # Remove all words from the candidates list that don't match the letters
+    # Only keep words from the candidates list that match the letters
     # stored in letterSets, for each letter position.
     candidates = [word for word in candidates if matchWord(word, letterSets)]
 
     if debug:
-        #print(letterSets)
         print(wrongPos)
 
     # Select a random word from the amended candidates list. Keep going until
@@ -160,12 +156,20 @@ def getNextWord(letterSets, wrongPos, debug=False):
 
 #-------------------------------------------------------------------------------
 
+def getHint():
+    """ Return a random word from the word list as a hint for the player.  """
+
+    hint = wordDict.sample().values[0][0]
+    return hint
+
+#-------------------------------------------------------------------------------
+
 def matchWord(word, letterSets):
     """ Check if each letter in the word is present in the corresponding
         set of letters held in letterSets. Return True if found, else False. """
 
-    for l1, l2 in zip(word, letterSets):
-        if l1 not in l2:
+    for idx in range(5):
+        if word[idx] not in letterSets[idx]:
             return False
     return True
 
