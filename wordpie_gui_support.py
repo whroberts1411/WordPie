@@ -36,6 +36,10 @@
 #               Add key bindings for <Ctrl> + 'h' or 'd' sequences. These will
 #               action events that aren't relly appropriate for conventional
 #               buttons (print a hint to the console and turn debug on/off).
+#               04/03/2022
+#               Add a new button to the right-hand panel that is used for the
+#               "other" game mode. This will reset all the colours for the
+#               current word, as a mistake here will make the game unsolvable.
 #
 #-------------------------------------------------------------------------------
 
@@ -48,6 +52,10 @@ import string
 
 import wordpie_gui
 import wordpie
+
+#-------------------------------------------------------------------------------
+# Global constants and variables that are used everywhere in the program.
+#-------------------------------------------------------------------------------
 
 # Colours for the letter and button backgrounds
 green = "#c9fb96"
@@ -200,7 +208,7 @@ def cmdNext_click(*args):
 
     global curr_word
 
-    # The colours have been set, so adjust to the letterSets. If any errors, or
+    # The colours have been set, so adjust the letterSets. If any errors, or
     # the grid has been completed, finish.
     if not updateFoundLetters(curr_word): return
 
@@ -210,6 +218,14 @@ def cmdNext_click(*args):
         return
     else:
         solvePuzzle()
+
+#-------------------------------------------------------------------------------
+
+def cmdReset_click(*args):
+    """ The player wants to reset all the colours for the current word, if they
+        made a mistake. This is only applicable for the "other" game mode.  """
+
+    resetLetterColours()
 
 #-------------------------------------------------------------------------------
 
@@ -373,7 +389,7 @@ def displayWord(pos, word, auto):
 
     # Highlight the first letter in the word with a red border
     if word != 'ERROR' and not auto:
-        wordGrid[pos][0].configure(highlightthickness=1)
+        wordGrid[pos][0].configure(highlightthickness=2)
 
 #-------------------------------------------------------------------------------
 
@@ -387,7 +403,21 @@ def setLetterColour(colour):
                                                 highlightthickness=0)
     curr_letter += 1
     if curr_letter < 5:
-        wordGrid[curr_word][curr_letter].configure(highlightthickness=1)
+        wordGrid[curr_word][curr_letter].configure(highlightthickness=2)
+
+#-------------------------------------------------------------------------------
+
+def resetLetterColours():
+    """ Reset all the letter colours for the current word and highlight the
+        first letter in the word.  """
+
+    global curr_letter
+    for letter in wordGrid[curr_word]:
+        letter.configure(disabledbackground=white,
+                         disabledforeground=blue,
+                         highlightthickness=0)
+    curr_letter = 0
+    wordGrid[curr_word][curr_letter].configure(highlightthickness=2)
 
 #-------------------------------------------------------------------------------
 
@@ -469,6 +499,7 @@ def setSidePanel(enable):
         _w1.cmdGold['state'] = 'normal'
         _w1.cmdGray['state'] = 'normal'
         _w1.cmdNext['state'] = 'normal'
+        _w1.cmdReset['state'] = 'normal'
         _w1.cmdGreen.config(background=green)
         _w1.cmdGold.config(background=gold)
         _w1.cmdGray.config(background=grey)
@@ -478,6 +509,7 @@ def setSidePanel(enable):
         _w1.cmdGold['state'] = 'disable'
         _w1.cmdGray['state'] = 'disable'
         _w1.cmdNext['state'] = 'disable'
+        _w1.cmdReset['state'] = 'disable'
         _w1.cmdGreen.config(background=btnDisabled)
         _w1.cmdGold.config(background=btnDisabled)
         _w1.cmdGray.config(background=btnDisabled)
@@ -599,3 +631,7 @@ if __name__ == '__main__':
     wordpie_gui.start_up()
 
 #-------------------------------------------------------------------------------
+
+
+
+

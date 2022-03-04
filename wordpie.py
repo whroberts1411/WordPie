@@ -55,8 +55,8 @@ def setupDataframe():
     wordDict['score'] = zerolist
 
     # Create a dictionary of letters and their frequencies
-    frequency = pd.read_csv('frequency.csv', header=0, index_col=0,
-                            squeeze=True).to_dict()
+    frequency = pd.read_csv('frequency.csv', header=0,
+                            index_col=0).squeeze('columns').to_dict()
 
     # Update the 'score' column with the calculated score for each word
     for idx in range(len(wordDict.index)):
@@ -93,15 +93,16 @@ def getSecretWord(debug=False):
 
 def getBestWord(debug=False):
     """ Get a random high-score word from the dictionary. Select all rows where
-        the score is more than 0.4, then take a random row from this selection.
-        Finally, get the value of the first cell and return it. """
+        the score is more than 0.375, then take a random row from this
+        selection that doesn't have any duplicate letters. Using the base word
+        list, this gives a possible selection of 136 words to chose from.  """
 
     # Store the candidate words in a list, for auto completion of the puzzle
     global candidates
     candidates = wordDict['word'].tolist()
 
     while True:
-        word = wordDict[wordDict.score > 0.4].sample().values[0][0]
+        word = wordDict[wordDict.score > 0.375].sample().values[0][0]
         if len(set(word)) == 5: break
 
     if debug:
@@ -130,7 +131,7 @@ def getNextWord(letterSets, wrongPos, debug=False):
 
     # Select a random word from the amended candidates list. Keep going until
     # we have a word that contains all the "gold" matches as well. Only repeat
-    # for 'tries' times, in case conditions not satisfied.
+    # for 'tries' times, in case conditions not satisfied (shouldn't happen).
     tries = 0
     while True:
         try:
@@ -175,6 +176,17 @@ def matchWord(word, letterSets):
 
 #-------------------------------------------------------------------------------
 
+def matchWordOrig(word, letterSets):
+    """ Check if each letter in the word is present in the corresponding
+        set of letters held in letterSets. Return True if found, else False. """
+
+    for l1, l2 in zip(word, letterSets):
+        if l1 not in l2:
+            return False
+    return True
+
+#-------------------------------------------------------------------------------
+
 def addNewWord(word):
     """ Add a new word to the csv word file and reload the dataframe. """
 
@@ -190,6 +202,17 @@ def main():
     setupDataframe()
     temp = getSecretWord()
     print('Secret Word :', temp)
+
+    return
+
+    # Two methods of checking the letters in the word. Do a disassembly to
+    # see which is the more efficient (if either).
+    import dis
+    print('-'*50)
+    dis.dis(matchWord)
+    print('-'*50)
+    dis.dis(matchWordOrig)
+    print('-'*50)
 
 #-------------------------------------------------------------------------------
 
