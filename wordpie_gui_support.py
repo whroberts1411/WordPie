@@ -50,39 +50,9 @@ from tkinter.constants import *
 from tkinter import messagebox
 import string
 
+import constants as c
 import wordpie_gui
 import wordpie
-
-#-------------------------------------------------------------------------------
-# Global constants and variables that are used everywhere in the program.
-#-------------------------------------------------------------------------------
-
-# Colours for the letter and button backgrounds
-green = "#c9fb96"
-gold = "#deea07"
-grey = "#C6D8D8"
-white = '#ffffff'
-blue = '#0000e1'        # this is the text colour for the guesses
-btnColour = "#fffaf0"   # this is the default pale yellow colour
-btnDisabled = '#c9c9c9' # The light grey used for the main window background
-
-# This is the word we need to find
-secret = ''
-# Storage for possible letters at each word position (as sets)
-letterSets = []
-# Set of correct letters in the wrong position
-wrongPos = set()
-# Print messages to the terminal for matches and other debug info?
-debug = False
-# Current word and letter in the guesses grid
-curr_word = None
-curr_letter = None
-# Store textbox controls for the grid - 6 sublists, one per row
-wordGrid = []
-# Store the textbox variables for the grid - 6 sublists, one per row
-varsGrid = []
-# Dictionary to store the keyboard button controls - key is the letter
-keyboard = {}
 
 #-------------------------------------------------------------------------------
 # Event Handlers for the screen controls, etc.
@@ -93,9 +63,7 @@ def cmdStart_click(*args):
         from the dictionary.   """
 
     init_screen()
-
-    global secret
-    secret = wordpie.getSecretWord(debug).lower()
+    c.secret = wordpie.getSecretWord(c.debug).lower()
 
     # check the option, and run auto-solve or other if required
     if _w1.ManAuto.get() == 'Aut':
@@ -112,16 +80,14 @@ def cmdKeyboard_click(*args):
     """ This handles the keyboard keys at the bottom of the screen. The arg[0]
         parameter holds the letter value of the key clicked.  """
 
-    global curr_word, curr_letter
-
     letter = args[0]
 
     # Is it the end of the current word?
-    if curr_letter > 4: return
+    if c.curr_letter > 4: return
 
     # Enter the letter in the grid and increment the letter position
-    varsGrid[curr_word][curr_letter].set(letter)
-    curr_letter += 1
+    c.varsGrid[c.curr_word][c.curr_letter].set(letter)
+    c.curr_letter += 1
 
 #-------------------------------------------------------------------------------
 
@@ -129,10 +95,8 @@ def cmdDelete_click(*args):
     """ The Delete key on the on-screen keyboard. Delete the last-entered
         letter in the current word. """
 
-    global curr_word, curr_letter
-
-    if curr_letter > 0 : curr_letter -= 1
-    varsGrid[curr_word][curr_letter].set('')
+    if c.curr_letter > 0 : c.curr_letter -= 1
+    c.varsGrid[c.curr_word][c.curr_letter].set('')
 
 #-------------------------------------------------------------------------------
 
@@ -141,19 +105,17 @@ def cmdEnter_click(*args):
         current row against the secret word, and adjust the background
         colours accordingly. Also do the keyboard colours.  """
 
-    global curr_word, curr_letter
-
     # Get the word from the current line for checking
     word = ''
-    for letter in varsGrid[curr_word]:
+    for letter in c.varsGrid[c.curr_word]:
         word += letter.get()
 
     # If valid, check against the dictionary and colour as appropriate
-    if isValid(word, curr_word+1):
-        checkWord(word, wordGrid[curr_word], curr_word+1)
-        if curr_word < 5:
-            curr_word += 1
-            curr_letter = 0
+    if isValid(word, c.curr_word+1):
+        checkWord(word, c.wordGrid[c.curr_word], c.curr_word+1)
+        if c.curr_word < 5:
+            c.curr_word += 1
+            c.curr_letter = 0
         else:
             disableKeyboard()
 
@@ -182,7 +144,7 @@ def cmdGold_click(*args):
     """ Set the current letter's background to gold (for solving puzzles on
         other machines/web).  """
 
-    setLetterColour(gold)
+    setLetterColour(c.GOLD)
 
 #-------------------------------------------------------------------------------
 
@@ -190,7 +152,7 @@ def cmdGray_click(*args):
     """ Set the current letter's background to gray (for solving puzzles on
         other machines/web).  """
 
-    setLetterColour(grey)
+    setLetterColour(c.GREY)
 
 #-------------------------------------------------------------------------------
 
@@ -198,7 +160,7 @@ def cmdGreen_click(*args):
     """ Set the current letter's background to green (for solving puzzles on
         other machines/web).  """
 
-    setLetterColour(green)
+    setLetterColour(c.GREEN)
 
 #-------------------------------------------------------------------------------
 
@@ -206,14 +168,12 @@ def cmdNext_click(*args):
     """ Get the next word when solving a game from an external site or on
         another machine.   """
 
-    global curr_word
-
     # The colours have been set, so adjust the letterSets. If any errors, or
     # the grid has been completed, finish.
-    if not updateFoundLetters(curr_word): return
+    if not updateFoundLetters(c.curr_word): return
 
-    curr_word += 1
-    if curr_word > 5:
+    c.curr_word += 1
+    if c.curr_word > 5:
         setSidePanel(False)
         return
     else:
@@ -233,8 +193,6 @@ def key_pressed(event):
     """ Capture specific <Ctrl>-key sequences, to perform actions that we
         don't want to assign to buttons. """
 
-    global debug
-
     # If <Ctrl>-h is pressed, select a random word from the word list as a hint
     # for the player. It will be displayed in the console window.
     if event.keysym == 'h':
@@ -243,8 +201,8 @@ def key_pressed(event):
 
     # Turn debug mode on or off if <Ctrl>-d is pressed.
     if event.keysym == 'd':
-        debug = not debug
-        print('Debug is', debug)
+        c.debug = not c.debug
+        print('Debug is', c.debug)
 
 #-------------------------------------------------------------------------------
 # Miscellaneous helper functions called from screen controls, etc.
@@ -291,33 +249,33 @@ def checkWord(word, letters, attempt=0):
     # Set the appropriate background colours
     word = word.lower()
     for idx in range(5):
-        if word[idx] == secret[idx]:
-            letters[idx].configure(disabledbackground=green)
-            letterSets[idx] = {word[idx]}
-            setKey(word[idx], green)
-        elif word[idx] in secret:
-            letters[idx].configure(disabledbackground=gold)
-            setKey(word[idx], gold)
-            wrongPos.add(word[idx])
+        if word[idx] == c.secret[idx]:
+            letters[idx].configure(disabledbackground=c.GREEN)
+            c.letterSets[idx] = {word[idx]}
+            setKey(word[idx], c.GREEN)
+        elif word[idx] in c.secret:
+            letters[idx].configure(disabledbackground=c.GOLD)
+            setKey(word[idx], c.GOLD)
+            c.wrongPos.add(word[idx])
             try:
-                letterSets[idx].remove(word[idx])
+                c.letterSets[idx].remove(word[idx])
             except KeyError:
                 pass
         else:
-            letters[idx].configure(disabledbackground=grey)
-            setKey(word[idx], grey)
-            for temp in letterSets:
+            letters[idx].configure(disabledbackground=c.GREY)
+            setKey(word[idx], c.GREY)
+            for temp in c.letterSets:
                 try:
                     temp.remove(word[idx])
                 except KeyError:
                     pass
 
     # Set the label message, depending on what's happened
-    if word == secret:
-        msg = "You've Won! The secret word was " + secret
+    if word == c.secret:
+        msg = "You've Won! The secret word was " + c.secret
         disableKeyboard()
     elif attempt == 6:
-        msg = "You've Lost. The secret word was " + secret
+        msg = "You've Lost. The secret word was " + c.secret
         disableKeyboard()
     else:
         msg = ''
@@ -329,9 +287,9 @@ def setKey(letter, colour):
     """ Set the keyboard key corresponding to 'letter' to the requested
         colour. If currently set to green, do not reset to gold.  """
 
-    button = keyboard[letter]
+    button = c.keyboard[letter]
     curr = button.cget('bg')
-    if curr != green:
+    if curr != c.GREEN:
         button.config(background=colour)
 
 #-------------------------------------------------------------------------------
@@ -345,12 +303,12 @@ def autoSolve():
     # get the candidate words from the dictionary and fill them in
     for idx in range(1,7):
         if idx == 1:
-            word = wordpie.getBestWord(debug)
+            word = wordpie.getBestWord(c.debug)
         else:
-            word = wordpie.getNextWord(letterSets, wrongPos, debug)
+            word = wordpie.getNextWord(c.letterSets, c.wrongPos, c.debug)
         displayWord(idx, word, True)
         cmdEnter_click()
-        if word == secret: return
+        if word == c.secret: return
 
 #-------------------------------------------------------------------------------
 
@@ -361,14 +319,12 @@ def solvePuzzle():
         sometimes fail, as our word list isn't exactly the same as the official
         Wordle one - and the program doesn't always get it right, anyway.  """
 
-    global curr_word, curr_letter
-
-    curr_letter = 0
-    if curr_word == 0:
-        word = wordpie.getBestWord(debug)
+    c.curr_letter = 0
+    if c.curr_word == 0:
+        word = wordpie.getBestWord(c.debug)
     else:
-        word = wordpie.getNextWord(letterSets, wrongPos, debug)
-    displayWord(curr_word+1, word, False)
+        word = wordpie.getNextWord(c.letterSets, c.wrongPos, c.debug)
+    displayWord(c.curr_word+1, word, False)
 
     if word == 'ERROR':
         msg = "Something's gone wrong.\n We can't find a matching word "
@@ -385,11 +341,11 @@ def displayWord(pos, word, auto):
         to subtract one to use it as a list index.  """
 
     pos -= 1
-    for idx in range(0,5): varsGrid[pos][idx].set(word[idx])
+    for idx in range(0,5): c.varsGrid[pos][idx].set(word[idx])
 
     # Highlight the first letter in the word with a red border
     if word != 'ERROR' and not auto:
-        wordGrid[pos][0].configure(highlightthickness=2)
+        c.wordGrid[pos][0].configure(highlightthickness=2)
 
 #-------------------------------------------------------------------------------
 
@@ -397,13 +353,12 @@ def setLetterColour(colour):
     """ Set the background colour of the current letter. Un-highlight the
         current letter, and highlight the next one in sequence.  """
 
-    global curr_letter
-    if curr_letter > 4: return
-    wordGrid[curr_word][curr_letter].configure(disabledbackground=colour,
+    if c.curr_letter > 4: return
+    c.wordGrid[c.curr_word][c.curr_letter].configure(disabledbackground=colour,
                                                 highlightthickness=0)
-    curr_letter += 1
-    if curr_letter < 5:
-        wordGrid[curr_word][curr_letter].configure(highlightthickness=2)
+    c.curr_letter += 1
+    if c.curr_letter < 5:
+        c.wordGrid[c.curr_word][c.curr_letter].configure(highlightthickness=2)
 
 #-------------------------------------------------------------------------------
 
@@ -411,13 +366,12 @@ def resetLetterColours():
     """ Reset all the letter colours for the current word and highlight the
         first letter in the word.  """
 
-    global curr_letter
-    for letter in wordGrid[curr_word]:
-        letter.configure(disabledbackground=white,
-                         disabledforeground=blue,
+    for letter in c.wordGrid[c.curr_word]:
+        letter.configure(disabledbackground=c.WHITE,
+                         disabledforeground=c.BLUE,
                          highlightthickness=0)
-    curr_letter = 0
-    wordGrid[curr_word][curr_letter].configure(highlightthickness=2)
+    c.curr_letter = 0
+    c.wordGrid[c.curr_word][c.curr_letter].configure(highlightthickness=2)
 
 #-------------------------------------------------------------------------------
 
@@ -425,24 +379,22 @@ def updateFoundLetters(wordRow):
     """ Update the letterSets depending on the background colours of the
         letters. Used only when solving Wordle games from the web, etc. """
 
-    global letterSets, wrongPos
-
     ok = True
     correct = 0
 
-    for idx, letter in enumerate(wordGrid[wordRow]):
+    for idx, letter in enumerate(c.wordGrid[wordRow]):
         letterVal = letter.get()
-        if letter.cget('disabledbackground') == green:
-            letterSets[idx] = {letterVal}
+        if letter.cget('disabledbackground') == c.GREEN:
+            c.letterSets[idx] = {letterVal}
             correct += 1
-        elif letter.cget('disabledbackground') == gold:
-            wrongPos.add(letterVal)
+        elif letter.cget('disabledbackground') == c.GOLD:
+            c.wrongPos.add(letterVal)
             try:
-                letterSets[idx].remove(letterVal)
+                c.letterSets[idx].remove(letterVal)
             except KeyError:
                 pass
-        elif letter.cget('disabledbackground') == grey:
-            for temp in letterSets:
+        elif letter.cget('disabledbackground') == c.GREY:
+            for temp in c.letterSets:
                 try:
                     temp.remove(letterVal)
                 except KeyError:
@@ -472,7 +424,7 @@ def disableKeyboard():
     _w1.cmdEnter['state'] = 'disable'
     _w1.cmdDelete['state'] = 'disable'
 
-    for key, button in keyboard.items():
+    for key, button in c.keyboard.items():
         button['state'] = 'disable'
 
 #-------------------------------------------------------------------------------
@@ -483,7 +435,7 @@ def enableKeyboard():
     _w1.cmdEnter['state'] = 'normal'
     _w1.cmdDelete['state'] = 'normal'
 
-    for key, button in keyboard.items():
+    for key, button in c.keyboard.items():
         button['state'] = 'normal'
 
 #-------------------------------------------------------------------------------
@@ -500,9 +452,9 @@ def setSidePanel(enable):
         _w1.cmdGray['state'] = 'normal'
         _w1.cmdNext['state'] = 'normal'
         _w1.cmdReset['state'] = 'normal'
-        _w1.cmdGreen.config(background=green)
-        _w1.cmdGold.config(background=gold)
-        _w1.cmdGray.config(background=grey)
+        _w1.cmdGreen.config(background=c.GREEN)
+        _w1.cmdGold.config(background=c.GOLD)
+        _w1.cmdGray.config(background=c.GREY)
     else:
         _w1.lblColours['state'] = 'disable'
         _w1.cmdGreen['state'] = 'disable'
@@ -510,9 +462,9 @@ def setSidePanel(enable):
         _w1.cmdGray['state'] = 'disable'
         _w1.cmdNext['state'] = 'disable'
         _w1.cmdReset['state'] = 'disable'
-        _w1.cmdGreen.config(background=btnDisabled)
-        _w1.cmdGold.config(background=btnDisabled)
-        _w1.cmdGray.config(background=btnDisabled)
+        _w1.cmdGreen.config(background=c.BTNDISABLED)
+        _w1.cmdGold.config(background=c.BTNDISABLED)
+        _w1.cmdGray.config(background=c.BTNDISABLED)
 
 #-------------------------------------------------------------------------------
 
@@ -521,25 +473,24 @@ def init_screen():
         done on program startup and whenever the game is restarted. """
 
     # Set all the letter widgets to disabled, backgrounds white, text blue.
-    for words in wordGrid:
+    for words in c.wordGrid:
         for letter in words:
             letter['state'] = 'disable'
-            letter.configure(disabledbackground=white,
-                             disabledforeground=blue,
+            letter.configure(disabledbackground=c.WHITE,
+                             disabledforeground=c.BLUE,
                              highlightthickness=0)
 
     # Clear any entries from the letter variable fields.
-    for line in varsGrid:
+    for line in c.varsGrid:
         for txtbox in line:
             txtbox.set('')
 
     # Set the keyboard buttons to the default background colour
-    for key, button in keyboard.items():
-        button.config(background=btnColour)
+    for key, button in c.keyboard.items():
+        button.config(background=c.BTNCOLOUR)
 
-    global curr_word, curr_letter
-    curr_word = 0
-    curr_letter = 0
+    c.curr_word = 0
+    c.curr_letter = 0
 
     # Clear the message area
     _w1.lblMessage.config(text='')
@@ -548,10 +499,9 @@ def init_screen():
     disableKeyboard()
 
     # Store a list of 5 sets, each holding all the lowercase alpha characters
-    global letterSets
-    letterSets = [set(string.ascii_lowercase) for _ in range(5)]
+    c.letterSets = [set(string.ascii_lowercase) for _ in range(5)]
 
-    wrongPos.clear()
+    c.wrongPos.clear()
 
 #-------------------------------------------------------------------------------
 
@@ -560,8 +510,6 @@ def do_init():
         displayed. Store the screen controls and text variables for each word
         in global lists. Store the keyboard buttons in a dictionary. """
 
-    global wordGrid, varsGrid, keyboard
-
     # Screen controls for the word grid - a list of 6 sublists
     w1 = [_w1.txtWord11,_w1.txtWord12,_w1.txtWord13,_w1.txtWord14,_w1.txtWord15]
     w2 = [_w1.txtWord21,_w1.txtWord22,_w1.txtWord23,_w1.txtWord24,_w1.txtWord25]
@@ -569,7 +517,7 @@ def do_init():
     w4 = [_w1.txtWord41,_w1.txtWord42,_w1.txtWord43,_w1.txtWord44,_w1.txtWord45]
     w5 = [_w1.txtWord51,_w1.txtWord52,_w1.txtWord53,_w1.txtWord54,_w1.txtWord55]
     w6 = [_w1.txtWord61,_w1.txtWord62,_w1.txtWord63,_w1.txtWord64,_w1.txtWord65]
-    wordGrid.extend((w1,w2,w3,w4,w5,w6))
+    c.wordGrid.extend((w1,w2,w3,w4,w5,w6))
 
     # Textbox variables for the letters - a list of 6 sublists
     v1 = [_w1.vtxtWord11,_w1.vtxtWord12,_w1.vtxtWord13,_w1.vtxtWord14,_w1.vtxtWord15]
@@ -578,7 +526,7 @@ def do_init():
     v4 = [_w1.vtxtWord41,_w1.vtxtWord42,_w1.vtxtWord43,_w1.vtxtWord44,_w1.vtxtWord45]
     v5 = [_w1.vtxtWord51,_w1.vtxtWord52,_w1.vtxtWord53,_w1.vtxtWord54,_w1.vtxtWord55]
     v6 = [_w1.vtxtWord61,_w1.vtxtWord62,_w1.vtxtWord63,_w1.vtxtWord64,_w1.vtxtWord65]
-    varsGrid.extend((v1,v2,v3,v4,v5,v6))
+    c.varsGrid.extend((v1,v2,v3,v4,v5,v6))
 
     # Keyboard buttons, key is a letter, value is the matching button control
     k1 = {'a':_w1.cmdA,'b':_w1.cmdB,'c':_w1.cmdC,'d':_w1.cmdD,'e':_w1.cmdE}
@@ -587,12 +535,12 @@ def do_init():
     k4 = {'p':_w1.cmdP,'q':_w1.cmdQ,'r':_w1.cmdR,'s':_w1.cmdS,'t':_w1.cmdT}
     k5 = {'u':_w1.cmdU,'v':_w1.cmdV,'w':_w1.cmdW,'x':_w1.cmdX,'y':_w1.cmdY}
     k6 = {'z':_w1.cmdZ}
-    keyboard.update(k1)
-    keyboard.update(k2)
-    keyboard.update(k3)
-    keyboard.update(k4)
-    keyboard.update(k5)
-    keyboard.update(k6)
+    c.keyboard.update(k1)
+    c.keyboard.update(k2)
+    c.keyboard.update(k3)
+    c.keyboard.update(k4)
+    c.keyboard.update(k5)
+    c.keyboard.update(k6)
 
     _w1.ManAuto.set('Man')
     _top1.iconbitmap('wordpie.ico')
@@ -631,7 +579,3 @@ if __name__ == '__main__':
     wordpie_gui.start_up()
 
 #-------------------------------------------------------------------------------
-
-
-
-

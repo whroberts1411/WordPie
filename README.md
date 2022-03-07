@@ -9,6 +9,5 @@ The word list used by the program has approximately 2,500 5-letter words, and ha
 ### Requirements
 - tkinter is required, but this is a part of the Python distribution, so shouldn't be an issue.
 - The program should work OK with any recent version of Python. It hasn't been tested on anything prior to version 3.7, but there isn't anything in the code that should cause problems.
-- Pandas is also required. This will be available by default with an Anaconda install, but a pure Python installation may require a separate installation of Pandas.
 ### Installation
 Provided that the above requirements are satisfied, just copy all of the files into a new folder on your machine. Make sure that the two csv files and the ico file are also present, as well as the code files. Then just run ***wordpie_gui.py*** as you would any other Python program.

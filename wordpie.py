@@ -28,50 +28,42 @@
 #
 #-------------------------------------------------------------------------------
 
-import pandas as pd
+import constants as c
 import random
-
-wordDict = None
-candidates = []
 
 #-------------------------------------------------------------------------------
 
 def setupDataframe():
-    """ Modify the dataframe to name the word column and add a second column
-        for the word scores. These will be derived from a file of letter
-        frquencies held in 'frequency.csv'.   """
+    """ Read the wordlist file into a dictionary, and add the word score as the
+        dictionary value. The score will be calculated from a file of letter
+        frequencies in English words.   """
 
-    global wordDict
-
-    wordDict = pd.read_csv('wordlist.csv', header=None)
-
-    # Rename the first column that holds the 5-letter words
-    wordDict.rename(columns={0:'word'}, inplace=True)
-
-    # Create a list of all zeros, same length as the dataframe
-    zerolist = [0 for i in range(len(wordDict.index))]
-
-    # Create a new column initialised to all zeros
-    wordDict['score'] = zerolist
+    # Store the wordlist file in a dictionary, with all values set to zero
+    c.wordDict = {}
+    with open('wordlist.csv', 'r') as myWords:
+        for word in myWords:
+            c.wordDict[word.replace('\n','')] = 0
 
     # Create a dictionary of letters and their frequencies
-    frequency = pd.read_csv('frequency.csv', header=0,
-                            index_col=0).squeeze('columns').to_dict()
+    frequency = {}
+    with open('frequency.csv', 'r') as frequencies:
+        for freq in frequencies:
+            (key, val) = freq.split(',')
+            frequency[key] = float(val)
 
-    # Update the 'score' column with the calculated score for each word
-    for idx in range(len(wordDict.index)):
-        word = wordDict.iloc[idx][0]
+    # Update wordDict with the calculated score for each word
+    for word in c.wordDict:
         score = 0
         for letter in word:
             score += frequency[letter.upper()]
-        wordDict.loc[idx, 'score'] = score
+        c.wordDict[word] = score
 
 #-------------------------------------------------------------------------------
 
 def wordFound(word):
     """ Check if the supplied word is in the dictionary """
 
-    if word in wordDict.values:
+    if word in c.wordDict:
         return True
     else:
         return False
@@ -81,7 +73,7 @@ def wordFound(word):
 def getSecretWord(debug=False):
     """ Get a random word from the dictionary """
 
-    secret = wordDict.sample().values[0][0]
+    secret, score = random.choice(list(c.wordDict.items()))
 
     if debug:
         print('-'*40)
@@ -98,16 +90,17 @@ def getBestWord(debug=False):
         list, this gives a possible selection of 136 words to chose from.  """
 
     # Store the candidate words in a list, for auto completion of the puzzle
-    global candidates
-    candidates = wordDict['word'].tolist()
+    dictKeys = c.wordDict.keys()
+    c.candidates =list(dictKeys)
 
     while True:
-        word = wordDict[wordDict.score > 0.375].sample().values[0][0]
-        if len(set(word)) == 5: break
+        word, score = random.choice(list(c.wordDict.items()))
+        if score > 0.375 and len(set(word)) == 5:
+            break
 
     if debug:
-        print('\nCandidate words :', len(candidates))
-        if len(candidates) < 30: print(candidates)
+        print('\nCandidate words :', len(c.candidates))
+        if len(c.candidates) < 30: print(c.candidates)
         print('New word selected :', word)
 
     return word
@@ -121,10 +114,9 @@ def getNextWord(letterSets, wrongPos, debug=False):
         'wrongPos' - letters present but in wrong position
     """
 
-    global candidates
     # Only keep words from the candidates list that match the letters
     # stored in letterSets, for each letter position.
-    candidates = [word for word in candidates if matchWord(word, letterSets)]
+    c.candidates = [wrd for wrd in c.candidates if matchWord(wrd, letterSets)]
 
     if debug:
         print(wrongPos)
@@ -135,7 +127,7 @@ def getNextWord(letterSets, wrongPos, debug=False):
     tries = 0
     while True:
         try:
-            word = random.sample(candidates, 1)[0]
+            word = random.choice(c.candidates)
             tries += 1
         except Exception as err:
             if debug:
@@ -149,8 +141,8 @@ def getNextWord(letterSets, wrongPos, debug=False):
             break
 
     if debug:
-        print('\nCandidate words :', len(candidates))
-        if len(candidates) < 30: print(candidates)
+        print('\nCandidate words :', len(c.candidates))
+        if len(c.candidates) < 30: print(c.candidates)
         print('New word selected :', word)
 
     return word
@@ -160,7 +152,7 @@ def getNextWord(letterSets, wrongPos, debug=False):
 def getHint():
     """ Return a random word from the word list as a hint for the player.  """
 
-    hint = wordDict.sample().values[0][0]
+    hint, score =  random.choice(list(c.wordDict.items()))
     return hint
 
 #-------------------------------------------------------------------------------
@@ -192,7 +184,7 @@ def addNewWord(word):
 
     with open('wordlist.csv', 'a', encoding='utf-8') as file:
         file.write('\n' + word)
-    setupDataframe()
+    c.wordDict[word] = 0
 
 #-------------------------------------------------------------------------------
 
