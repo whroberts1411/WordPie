@@ -130,7 +130,8 @@ def cmdExit_click(*args):
 
 def vcmd(*args):
     """ Validate the entries in the letter fields to be letters only, and
-        single characters. Cater for the backspace key.   """
+        single characters. Cater for the backspace key. No longer relevant, now
+        that the program uses an on-screen keyboard, not the physical one.  """
 
     for arg in args:
         if len(arg) == 0: return True       # allow the Backspace key
@@ -149,7 +150,7 @@ def cmdGold_click(*args):
 #-------------------------------------------------------------------------------
 
 def cmdGray_click(*args):
-    """ Set the current letter's background to gray (for solving puzzles on
+    """ Set the current letter's background to grey (for solving puzzles on
         other machines/web).  """
 
     setLetterColour(c.GREY)
@@ -343,7 +344,7 @@ def displayWord(pos, word, auto):
     pos -= 1
     for idx in range(0,5): c.varsGrid[pos][idx].set(word[idx])
 
-    # Highlight the first letter in the word with a red border
+    # Highlight the first letter in the word with a red border (set in PAGE)
     if word != 'ERROR' and not auto:
         c.wordGrid[pos][0].configure(highlightthickness=2)
 
@@ -499,6 +500,7 @@ def init_screen():
     disableKeyboard()
 
     # Store a list of 5 sets, each holding all the lowercase alpha characters
+    # This is not used for the manual playing mode.
     c.letterSets = [set(string.ascii_lowercase) for _ in range(5)]
 
     c.wrongPos.clear()
@@ -529,18 +531,20 @@ def do_init():
     c.varsGrid.extend((v1,v2,v3,v4,v5,v6))
 
     # Keyboard buttons, key is a letter, value is the matching button control
-    k1 = {'a':_w1.cmdA,'b':_w1.cmdB,'c':_w1.cmdC,'d':_w1.cmdD,'e':_w1.cmdE}
-    k2 = {'f':_w1.cmdF,'g':_w1.cmdG,'h':_w1.cmdH,'i':_w1.cmdI,'j':_w1.cmdJ}
-    k3 = {'k':_w1.cmdK,'l':_w1.cmdL,'m':_w1.cmdM,'n':_w1.cmdN,'o':_w1.cmdO}
-    k4 = {'p':_w1.cmdP,'q':_w1.cmdQ,'r':_w1.cmdR,'s':_w1.cmdS,'t':_w1.cmdT}
-    k5 = {'u':_w1.cmdU,'v':_w1.cmdV,'w':_w1.cmdW,'x':_w1.cmdX,'y':_w1.cmdY}
-    k6 = {'z':_w1.cmdZ}
-    c.keyboard.update(k1)
-    c.keyboard.update(k2)
-    c.keyboard.update(k3)
-    c.keyboard.update(k4)
-    c.keyboard.update(k5)
-    c.keyboard.update(k6)
+
+    c.keyboard = {
+        'a':_w1.cmdA,'b':_w1.cmdB,'c':_w1.cmdC,'d':_w1.cmdD,'e':_w1.cmdE,
+        'f':_w1.cmdF,'g':_w1.cmdG,'h':_w1.cmdH,'i':_w1.cmdI,'j':_w1.cmdJ,
+        'k':_w1.cmdK,'l':_w1.cmdL,'m':_w1.cmdM,'n':_w1.cmdN,'o':_w1.cmdO,
+        'p':_w1.cmdP,'q':_w1.cmdQ,'r':_w1.cmdR,'s':_w1.cmdS,'t':_w1.cmdT,
+        'u':_w1.cmdU,'v':_w1.cmdV,'w':_w1.cmdW,'x':_w1.cmdX,'y':_w1.cmdY,
+        'z':_w1.cmdZ }
+##    c.keyboard.update(k1)
+##    c.keyboard.update(k2)
+##    c.keyboard.update(k3)
+##    c.keyboard.update(k4)
+##    c.keyboard.update(k5)
+##    c.keyboard.update(k6)
 
     _w1.ManAuto.set('Man')
     _top1.iconbitmap('wordpie.ico')

@@ -22,6 +22,8 @@ BLUE = '#0000e1'        # this is the text colour for the guesses
 BTNCOLOUR = "#fffaf0"   # this is the default pale yellow colour
 BTNDISABLED = '#c9c9c9' # The light grey used for the main window background
 
+#-------------------------------------------------------------------------------
+
 # This is the word we need to find
 secret = ''
 # Storage for possible letters at each word position (as sets)

@@ -87,7 +87,7 @@ def getBestWord(debug=False):
     """ Get a random high-score word from the dictionary. Select all rows where
         the score is more than 0.375, then take a random row from this
         selection that doesn't have any duplicate letters. Using the base word
-        list, this gives a possible selection of 136 words to chose from.  """
+        list, this gives a possible selection of 136 words to choose from.  """
 
     # Store the candidate words in a list, for auto completion of the puzzle
     dictKeys = c.wordDict.keys()
@@ -111,41 +111,40 @@ def getNextWord(letterSets, wrongPos, debug=False):
     """ Modify the candidate word list,depending on the previous result.
         Then, return a new guess word from this modified list.
         'letterSets' - possible letter options for each position in the word
-        'wrongPos' - letters present but in wrong position
-    """
+        'wrongPos' - letters present but in wrong position       """
 
     # Only keep words from the candidates list that match the letters
     # stored in letterSets, for each letter position.
-    c.candidates = [wrd for wrd in c.candidates if matchWord(wrd, letterSets)]
+    c.candidates = [wrd for wrd in c.candidates
+                                if matchWord(wrd, letterSets, wrongPos)]
+
+    # Just in case something goes horribly wrong....
+    if len(c.candidates) == 0: return 'ERROR'
+
+    # Select a random word from the amended candidates list.
+    word = random.choice(c.candidates)
 
     if debug:
-        print(wrongPos)
-
-    # Select a random word from the amended candidates list. Keep going until
-    # we have a word that contains all the "gold" matches as well. Only repeat
-    # for 'tries' times, in case conditions not satisfied (shouldn't happen).
-    tries = 0
-    while True:
-        try:
-            word = random.choice(c.candidates)
-            tries += 1
-        except Exception as err:
-            if debug:
-                print('****ERROR****')
-                print(candidates)
-                print(letterSets)
-                print(wrongPos)
-            return 'ERROR'
-
-        if wrongPos.issubset(set(word)) or tries > 500:
-            break
-
-    if debug:
-        print('\nCandidate words :', len(c.candidates))
-        if len(c.candidates) < 30: print(c.candidates)
+        print('\n',wrongPos)
+        print('Candidate words :', len(c.candidates))
+        if len(c.candidates) < 60: print(c.candidates)
         print('New word selected :', word)
 
     return word
+
+#-------------------------------------------------------------------------------
+
+def matchWord(word, letterSets, wrongPos):
+    """ Check if each letter in the word is present in the corresponding
+        set of letters held in letterSets. Return True if found, else False. """
+
+    for idx in range(5):
+        if word[idx] not in letterSets[idx]:
+            return False
+
+    # Are all the gold (yellow) letters present in the word?
+    if wrongPos.issubset(set(word)): return True
+    else: return False
 
 #-------------------------------------------------------------------------------
 
@@ -154,28 +153,6 @@ def getHint():
 
     hint, score =  random.choice(list(c.wordDict.items()))
     return hint
-
-#-------------------------------------------------------------------------------
-
-def matchWord(word, letterSets):
-    """ Check if each letter in the word is present in the corresponding
-        set of letters held in letterSets. Return True if found, else False. """
-
-    for idx in range(5):
-        if word[idx] not in letterSets[idx]:
-            return False
-    return True
-
-#-------------------------------------------------------------------------------
-
-def matchWordOrig(word, letterSets):
-    """ Check if each letter in the word is present in the corresponding
-        set of letters held in letterSets. Return True if found, else False. """
-
-    for l1, l2 in zip(word, letterSets):
-        if l1 not in l2:
-            return False
-    return True
 
 #-------------------------------------------------------------------------------
 
@@ -197,13 +174,10 @@ def main():
 
     return
 
-    # Two methods of checking the letters in the word. Do a disassembly to
-    # see which is the more efficient (if either).
+    # Do a disassembly of a function to see what python is doing.
     import dis
     print('-'*50)
     dis.dis(matchWord)
-    print('-'*50)
-    dis.dis(matchWordOrig)
     print('-'*50)
 
 #-------------------------------------------------------------------------------
